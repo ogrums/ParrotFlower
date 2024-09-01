@@ -12,7 +12,7 @@ ParrotListener = parrot_flower_ns.class_(
 
 CONFIG_SCHEMA = cv.Schema(
     {
-        cv.GenerateID(): cv.declare_id(XiaomiListener),
+        cv.GenerateID(): cv.declare_id(ParrotListener),
     }
 ).extend(esp32_ble_tracker.ESP_BLE_DEVICE_SCHEMA)
 
