@@ -18,18 +18,20 @@ class ParrotPower : public Component, public esp32_ble_tracker::ESPBTDeviceListe
 
   void dump_config() override;
   float get_setup_priority() const override { return setup_priority::DATA; }
-  void set_temperature(sensor::Sensor *temperature) { temperature_ = temperature; }
+  void set_soiltemperature(sensor::Sensor *soiltemperature) { soiltemperature_ = soiltemperature; }
+  void set_airtemperature(sensor::Sensor *airtemperature) { airtemperature_ = soiltemperature; }
   void set_moisture(sensor::Sensor *moisture) { moisture_ = moisture; }
-  void set_conductivity(sensor::Sensor *conductivity) { conductivity_ = conductivity; }
-  void set_illuminance(sensor::Sensor *illuminance) { illuminance_ = illuminance; }
+  void set_calibratedsoilmoisture(sensor::Sensor *calibratedsoilmoisture) { calibratedsoilmoisture_ = calibratedsoilmoisture; }
+  void set_sunlight(sensor::Sensor *sunlight) { sunlight_ = sunlight; }
   void set_battery_level(sensor::Sensor *battery_level) { battery_level_ = battery_level; }
 
  protected:
   uint64_t address_;
-  sensor::Sensor *temperature_{nullptr};
+  sensor::Sensor *soiltemperature_{nullptr};
+  sensor::Sensor *airtemperature_{nullptr};
   sensor::Sensor *moisture_{nullptr};
-  sensor::Sensor *conductivity_{nullptr};
-  sensor::Sensor *illuminance_{nullptr};
+  sensor::Sensor *calibratedsoilmoisture_{nullptr};
+  sensor::Sensor *sunlight_{nullptr};
   sensor::Sensor *battery_level_{nullptr};
 };
 

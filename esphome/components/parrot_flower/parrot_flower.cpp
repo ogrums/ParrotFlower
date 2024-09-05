@@ -18,79 +18,49 @@ bool parse_parrot_value(uint16_t value_type, const uint8_t *data, uint8_t value_
     result.button_press = data[2] == 0;
     return true;
   }
-  // motion detection, 1 byte, 8-bit unsigned integer
-  else if ((value_type == 0x0003) && (value_length == 1)) {
-    result.has_motion = data[0];
-  }
-  // temperature, 2 bytes, 16-bit signed integer (LE), 0.1 °C
-  else if ((value_type == 0x1004) && (value_length == 2)) {
-    const int16_t temperature = encode_uint16(data[1], data[0]);
-    result.temperature = temperature / 10.0f;
-  }
-  // humidity, 2 bytes, 16-bit signed integer (LE), 0.1 %
-  else if ((value_type == 0x1006) && (value_length == 2)) {
-    const int16_t humidity = encode_uint16(data[1], data[0]);
-    result.humidity = humidity / 10.0f;
-  }
-  // illuminance (+ motion), 3 bytes, 24-bit unsigned integer (LE), 1 lx
-  else if (((value_type == 0x1007) || (value_type == 0x000F)) && (value_length == 3)) {
-    const uint32_t illuminance = encode_uint24(data[2], data[1], data[0]);
-    result.illuminance = illuminance;
-    result.is_light = illuminance >= 100;
-    if (value_type == 0x0F)
-      result.has_motion = true;
-  }
-  // soil moisture, 1 byte, 8-bit unsigned integer, 1 %
-  else if ((value_type == 0x1008) && (value_length == 1)) {
-    result.moisture = data[0];
-  }
-  // conductivity, 2 bytes, 16-bit unsigned integer (LE), 1 µS/cm
-  else if ((value_type == 0x1009) && (value_length == 2)) {
-    const uint16_t conductivity = encode_uint16(data[1], data[0]);
-    result.conductivity = conductivity;
-  }
-  // battery / MiaoMiaoce battery, 1 byte, 8-bit unsigned integer, 1 %
-  else if ((value_type == 0x100A || value_type == 0x4803) && (value_length == 1)) {
+ // Battery Level, range is 0 - 100
+  else if ((value_type == 0x4C02) && (value_length == 1)) {
     result.battery_level = data[0];
   }
-  // temperature + humidity, 4 bytes, 16-bit signed integer (LE) each, 0.1 °C, 0.1 %
-  else if ((value_type == 0x100D) && (value_length == 4)) {
-    const int16_t temperature = encode_uint16(data[1], data[0]);
-    const int16_t humidity = encode_uint16(data[3], data[2]);
-    result.temperature = temperature / 10.0f;
-    result.humidity = humidity / 10.0f;
-  }
-  // formaldehyde, 2 bytes, 16-bit unsigned integer (LE), 0.01 mg / m3
-  else if ((value_type == 0x1010) && (value_length == 2)) {
-    const uint16_t formaldehyde = encode_uint16(data[1], data[0]);
-    result.formaldehyde = formaldehyde / 100.0f;
-  }
-  // on/off state, 1 byte, 8-bit unsigned integer
-  else if ((value_type == 0x1012) && (value_length == 1)) {
-    result.is_active = data[0];
-  }
-  // mosquito tablet, 1 byte, 8-bit unsigned integer, 1 %
-  else if ((value_type == 0x1013) && (value_length == 1)) {
-    result.tablet = data[0];
-  }
-  // idle time since last motion, 4 byte, 32-bit unsigned integer, 1 min
-  else if ((value_type == 0x1017) && (value_length == 4)) {
-    const uint32_t idle_time = encode_uint32(data[3], data[2], data[1], data[0]);
-    result.idle_time = idle_time / 60.0f;
-    result.has_motion = !idle_time;
-  } else if ((value_type == 0x1018) && (value_length == 1)) {
-    result.is_light = data[0];
-  }
-  // MiaoMiaoce temperature, 4 bytes, float, 0.1 °C
-  else if ((value_type == 0x4C01) && (value_length == 4)) {
-    const uint32_t int_number = encode_uint32(data[3], data[2], data[1], data[0]);
-    float temperature;
-    std::memcpy(&temperature, &int_number, sizeof(temperature));
-    result.temperature = temperature;
-  }
-  // MiaoMiaoce humidity, 1 byte, 8-bit unsigned integer, 1 %
+  // Sunlight, units are photons per square meter
   else if ((value_type == 0x4C02) && (value_length == 1)) {
-    result.humidity = data[0];
+    result.sunlight = data[0];
+  }
+  // Soil Temperature,  
+  else if ((value_type == 0x4C02) && (value_length == 1)) {
+    result.soiltemperature = data[0];
+  }
+  // Air Temperature,  
+  else if ((value_type == 0x4C02) && (value_length == 1)) {
+    result.airtemperature = data[0];
+  }
+  // Soil Moisture, units is percentage (%)
+  else if ((value_type == 0x4C02) && (value_length == 1)) {
+    result.moisture = data[0];
+  }
+  // Calibrated Value soil moisture %
+  else if ((value_type == 0x4C02) && (value_length == 1)) {
+    result.calibratedsoilmoisture = data[0];
+  }
+  // Calibrated Value temperature C
+  else if ((value_type == 0x4C02) && (value_length == 1)) {
+    result.calibratedairtemperature = data[0];
+  }
+  // Calibrated Value sunlight photons per square meter (mol/m²/d)
+  else if ((value_type == 0x4C02) && (value_length == 1)) {
+    result.calibratedsunlight = data[0];
+  }
+  // Calibrated Value ea no unites
+  else if ((value_type == 0x4C02) && (value_length == 1)) {
+    result.calibratedea = data[0];
+  }
+  // Calibrated Value ecb ds/m
+  else if ((value_type == 0x4C02) && (value_length == 1)) {
+    result.calibratedecb = data[0];
+  }
+  // Calibrated Value ecPorous ds/m
+  else if ((value_type == 0x4C02) && (value_length == 1)) {
+    result.calibratedecporous = data[0];
   } else {
     return false;
   }
@@ -176,70 +146,13 @@ optional<ParrotParseResult> parse_parrot_header(const esp32_ble_tracker::Service
 
   const uint16_t device_uuid = encode_uint16(raw[3], raw[2]);
 
-  if (device_uuid == 0x0098) {  // MiFlora
-    result.type = ParrotParseResult::TYPE_HHCCJCY01;
-    result.name = "HHCCJCY01";
-  } else if (device_uuid == 0x01aa) {  // round body, segment LCD
-    result.type = ParrotParseResult::TYPE_LYWSDCGQ;
-    result.name = "LYWSDCGQ";
-  } else if (device_uuid == 0x015d) {  // FlowerPot, RoPot
-    result.type = ParrotParseResult::TYPE_HHCCPOT002;
-    result.name = "HHCCPOT002";
-  } else if (device_uuid == 0x02df) {  // Parrot (Honeywell) formaldehyde sensor, OLED display
-    result.type = ParrotParseResult::TYPE_JQJCY01YM;
-    result.name = "JQJCY01YM";
-  } else if (device_uuid == 0x03dd) {  // Philips/Parrot BLE nightlight
-    result.type = ParrotParseResult::TYPE_MUE4094RT;
-    result.name = "MUE4094RT";
+  if (device_uuid == 0x01aa) {  // Flower Pot
+    result.type = ParrotParseResult::TYPE_POT;
+    result.name = "POT";
+  } else if (device_uuid == 0x015d) {  // Flower Power Service UUID: 39E1FA00-84A8-11E2-AFBA-0002A5D5C51B
+    result.type = ParrotParseResult::TYPE_POWER;
+    result.name = "POWER";
     result.raw_offset -= 6;
-  } else if (device_uuid == 0x0347 ||  // ClearGrass-branded, round body, e-ink display
-             device_uuid == 0x0B48) {  // Qingping-branded, round body, e-ink display — with bindkeys
-    result.type = ParrotParseResult::TYPE_CGG1;
-    result.name = "CGG1";
-  } else if (device_uuid == 0x03bc) {  // VegTrug Grow Care Garden
-    result.type = ParrotParseResult::TYPE_GCLS002;
-    result.name = "GCLS002";
-  } else if (device_uuid == 0x045b) {  // rectangular body, e-ink display
-    result.type = ParrotParseResult::TYPE_LYWSD02;
-    result.name = "LYWSD02";
-  } else if (device_uuid == 0x2542) {  // rectangular body, e-ink display — with bindkeys
-    result.type = ParrotParseResult::TYPE_LYWSD02MMC;
-    result.name = "LYWSD02MMC";
-    if (raw.size() == 19)
-      result.raw_offset -= 6;
-  } else if (device_uuid == 0x040a) {  // Mosquito Repellent Smart Version
-    result.type = ParrotParseResult::TYPE_WX08ZM;
-    result.name = "WX08ZM";
-  } else if (device_uuid == 0x0576) {  // Cleargrass (Qingping) alarm clock, segment LCD
-    result.type = ParrotParseResult::TYPE_CGD1;
-    result.name = "CGD1";
-  } else if (device_uuid == 0x066F) {  // Cleargrass (Qingping) Temp & RH Lite
-    result.type = ParrotParseResult::TYPE_CGDK2;
-    result.name = "CGDK2";
-  } else if (device_uuid == 0x055b) {  // small square body, segment LCD, encrypted
-    result.type = ParrotParseResult::TYPE_LYWSD03MMC;
-    result.name = "LYWSD03MMC";
-  } else if (device_uuid == 0x07f6) {  // Parrot-Yeelight BLE nightlight
-    result.type = ParrotParseResult::TYPE_MJYD02YLA;
-    result.name = "MJYD02YLA";
-    if (raw.size() == 19)
-      result.raw_offset -= 6;
-  } else if (device_uuid == 0x06d3) {  // rectangular body, e-ink display with alarm
-    result.type = ParrotParseResult::TYPE_MHOC303;
-    result.name = "MHOC303";
-  } else if (device_uuid == 0x0387) {  // square body, e-ink display
-    result.type = ParrotParseResult::TYPE_MHOC401;
-    result.name = "MHOC401";
-  } else if (device_uuid == 0x0A83) {  // Qingping-branded, motion & ambient light sensor
-    result.type = ParrotParseResult::TYPE_CGPR1;
-    result.name = "CGPR1";
-    if (raw.size() == 19)
-      result.raw_offset -= 6;
-  } else if (device_uuid == 0x0A8D) {  // Parrot Mi Motion Sensor 2
-    result.type = ParrotParseResult::TYPE_RTCGQ02LM;
-    result.name = "RTCGQ02LM";
-    if (raw.size() == 19)
-      result.raw_offset -= 6;
   } else {
     ESP_LOGVV(TAG, "parse_parrot_header(): unknown device, no magic bytes.");
     return {};
@@ -344,11 +257,14 @@ bool report_parrot_results(const optional<ParrotParseResult> &result, const std:
 
   ESP_LOGD(TAG, "Got Parrot %s (%s):", result->name.c_str(), address.c_str());
 
-  if (result->temperature.has_value()) {
-    ESP_LOGD(TAG, "  Temperature: %.1f°C", *result->temperature);
+  if (result->soiltemperature.has_value()) {
+    ESP_LOGD(TAG, "  Soil Temperature: %.1f°C", *result->soiltemperature);
   }
-  if (result->humidity.has_value()) {
-    ESP_LOGD(TAG, "  Humidity: %.1f%%", *result->humidity);
+  if (result->airtemperature.has_value()) {
+    ESP_LOGD(TAG, "  Air Temperature: %.1f°C", *result->airtemperature);
+  }
+  if (result->moisture.has_value()) {
+    ESP_LOGD(TAG, "  Moisture: %.1f%%", *result->moisture);
   }
   if (result->battery_level.has_value()) {
     ESP_LOGD(TAG, "  Battery Level: %.0f%%", *result->battery_level);
@@ -356,20 +272,26 @@ bool report_parrot_results(const optional<ParrotParseResult> &result, const std:
   if (result->conductivity.has_value()) {
     ESP_LOGD(TAG, "  Conductivity: %.0fµS/cm", *result->conductivity);
   }
-  if (result->illuminance.has_value()) {
-    ESP_LOGD(TAG, "  Illuminance: %.0flx", *result->illuminance);
+  if (result->sunlight.has_value()) {
+    ESP_LOGD(TAG, "  Sunlighte: %.0flx", *result->sunlight);
   }
-  if (result->moisture.has_value()) {
-    ESP_LOGD(TAG, "  Moisture: %.0f%%", *result->moisture);
+  if (result->calibratedsoilmoisture.has_value()) {
+    ESP_LOGD(TAG, "  Calibrated Soil Moisture: %.0f%%", *result->calibratedsoilmoisture);
   }
-  if (result->tablet.has_value()) {
-    ESP_LOGD(TAG, "  Mosquito tablet: %.0f%%", *result->tablet);
+  if (result->calibratedairtemperature.has_value()) {
+    ESP_LOGD(TAG, "  calibratedairtemperature: %.0f%%", *result->calibratedairtemperature);
   }
-  if (result->is_active.has_value()) {
-    ESP_LOGD(TAG, "  Repellent: %s", (*result->is_active) ? "on" : "off");
+  if (result->calibratedsunlight.has_value()) {
+    ESP_LOGD(TAG, "  calibratedsunlight: %.0f%%", *result->calibratedsunlight);
   }
-  if (result->has_motion.has_value()) {
-    ESP_LOGD(TAG, "  Motion: %s", (*result->has_motion) ? "yes" : "no");
+  if (result->calibratedea.has_value()) {
+    ESP_LOGD(TAG, "  Calibrated ea: %.0f%%", *result->calibratedea);
+  }
+  if (result->calibratedecb.has_value()) {
+    ESP_LOGD(TAG, "  Calibrated ecb: %.0f%%", *result->calibratedecb);
+  }
+  if (result->calibratedecporous.has_value()) {
+    ESP_LOGD(TAG, "  Calibrated ecb: %.0f%%", *result->calibratedecporous);
   }
   if (result->is_light.has_value()) {
     ESP_LOGD(TAG, "  Light: %s", (*result->is_light) ? "on" : "off");

@@ -12,37 +12,22 @@ namespace parrot_flower {
 
 struct ParrotParseResult {
   enum {
-    TYPE_HHCCJCY01,
-    TYPE_GCLS002,
-    TYPE_HHCCPOT002,
-    TYPE_LYWSDCGQ,
-    TYPE_LYWSD02,
-    TYPE_LYWSD02MMC,
-    TYPE_CGG1,
-    TYPE_LYWSD03MMC,
-    TYPE_CGD1,
-    TYPE_CGDK2,
-    TYPE_JQJCY01YM,
-    TYPE_MUE4094RT,
-    TYPE_WX08ZM,
-    TYPE_MJYD02YLA,
-    TYPE_MHOC303,
-    TYPE_MHOC401,
-    TYPE_CGPR1,
-    TYPE_RTCGQ02LM,
+    TYPE_POT,
+    TYPE_POWER,
   } type;
   std::string name;
-  optional<float> temperature;
-  optional<float> humidity;
   optional<float> moisture;
-  optional<float> conductivity;
-  optional<float> illuminance;
-  optional<float> formaldehyde;
+  optional<float> sunlight;
+  optional<float> soiltemperature;
   optional<float> battery_level;
-  optional<float> tablet;
-  optional<float> idle_time;
+  optional<float> airtemperature;
+  optional<float> calibratedsoilmoisture;
+  optional<float> calibratedairtemperature;
+  optional<float> calibratedsunlight;
+  optional<float> calibratedea;
+  optional<float> calibratedecb;
+  optional<float> calibratedecporous;
   optional<bool> is_active;
-  optional<bool> has_motion;
   optional<bool> is_light;
   optional<bool> button_press;
   bool has_data;        // 0x40

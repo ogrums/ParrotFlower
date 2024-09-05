@@ -10,10 +10,11 @@ static const char *const TAG = "parrot_power";
 
 void ParrotPower::dump_config() {
   ESP_LOGCONFIG(TAG, "Parrot Power");
-  LOG_SENSOR("  ", "Temperature", this->temperature_);
+  LOG_SENSOR("  ", "Soil Temperature", this->soiltemperature_);
+  LOG_SENSOR("  ", "Air Temperature", this->airtemperature_);
   LOG_SENSOR("  ", "Moisture", this->moisture_);
-  LOG_SENSOR("  ", "Conductivity", this->conductivity_);
-  LOG_SENSOR("  ", "Illuminance", this->illuminance_);
+  LOG_SENSOR("  ", "Calibrated Soil Moisture", this->calibratedsoilmoisture_);
+  LOG_SENSOR("  ", "sunlight", this->sunlight_);
   LOG_SENSOR("  ", "Battery Level", this->battery_level_);
 }
 
@@ -43,14 +44,16 @@ bool ParrotPower::parse_device(const esp32_ble_tracker::ESPBTDevice &device) {
     if (!(parrot_flower::report_parrot_results(res, device.address_str()))) {
       continue;
     }
-    if (res->temperature.has_value() && this->temperature_ != nullptr)
-      this->temperature_->publish_state(*res->temperature);
+    if (res->airtemperature.has_value() && this->airtemperature_ != nullptr)
+      this->airtemperature_->publish_state(*res->airtemperature);
+    if (res->soiltemperature.has_value() && this->soiltemperature_ != nullptr)
+      this->soiltemperature_->publish_state(*res->soiltemperature);
     if (res->moisture.has_value() && this->moisture_ != nullptr)
       this->moisture_->publish_state(*res->moisture);
-    if (res->conductivity.has_value() && this->conductivity_ != nullptr)
-      this->conductivity_->publish_state(*res->conductivity);
-    if (res->illuminance.has_value() && this->illuminance_ != nullptr)
-      this->illuminance_->publish_state(*res->illuminance);
+    if (res->calibratedsoilmoisture.has_value() && this->calibratedsoilmoisture_ != nullptr)
+      this->calibratedsoilmoisture_->publish_state(*res->calibratedsoilmoisture);
+    if (res->sunlight.has_value() && this->sunlight_ != nullptr)
+      this->sunlight_->publish_state(*res->sunlight);
     if (res->battery_level.has_value() && this->battery_level_ != nullptr)
       this->battery_level_->publish_state(*res->battery_level);
     success = true;
