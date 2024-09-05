@@ -269,9 +269,6 @@ bool report_parrot_results(const optional<ParrotParseResult> &result, const std:
   if (result->battery_level.has_value()) {
     ESP_LOGD(TAG, "  Battery Level: %.0f%%", *result->battery_level);
   }
-  if (result->conductivity.has_value()) {
-    ESP_LOGD(TAG, "  Conductivity: %.0fµS/cm", *result->conductivity);
-  }
   if (result->sunlight.has_value()) {
     ESP_LOGD(TAG, "  Sunlighte: %.0flx", *result->sunlight);
   }
