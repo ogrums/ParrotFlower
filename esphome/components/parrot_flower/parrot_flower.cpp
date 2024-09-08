@@ -19,47 +19,47 @@ bool parse_parrot_value(uint16_t value_type, const uint8_t *data, uint8_t value_
     return true;
   }
  // Battery Level, range is 0 - 100
-  else if ((value_type == 0x4C02) && (value_length == 1)) {
+  else if ((value_type == 0x180f) && (value_length == 1)) {
     result.battery_level = data[0];
   }
   // Sunlight, units are photons per square meter
-  else if ((value_type == 0x4C02) && (value_length == 1)) {
+  else if ((value_type == 39e1fa0184a811e2afba0002a5d5c51b) && (value_length == 1)) {
     result.sunlight = data[0];
   }
   // Soil Temperature,  
-  else if ((value_type == 0x4C02) && (value_length == 1)) {
+  else if ((value_type == 39e1fa0384a811e2afba0002a5d5c51b) && (value_length == 1)) {
     result.soiltemperature = data[0];
   }
   // Air Temperature,  
-  else if ((value_type == 0x4C02) && (value_length == 1)) {
+  else if ((value_type == 39e1fa0484a811e2afba0002a5d5c51b) && (value_length == 1)) {
     result.airtemperature = data[0];
   }
   // Soil Moisture, units is percentage (%)
-  else if ((value_type == 0x4C02) && (value_length == 1)) {
+  else if ((value_type == 39e1fa0584a811e2afba0002a5d5c51b) && (value_length == 1)) {
     result.moisture = data[0];
   }
   // Calibrated Value soil moisture %
-  else if ((value_type == 0x4C02) && (value_length == 1)) {
+  else if ((value_type == 39e1fa0984a811e2afba0002a5d5c51b) && (value_length == 1)) {
     result.calibratedsoilmoisture = data[0];
   }
   // Calibrated Value temperature C
-  else if ((value_type == 0x4C02) && (value_length == 1)) {
+  else if ((value_type == 39e1fa0a84a811e2afba0002a5d5c51b) && (value_length == 1)) {
     result.calibratedairtemperature = data[0];
   }
   // Calibrated Value sunlight photons per square meter (mol/m²/d)
-  else if ((value_type == 0x4C02) && (value_length == 1)) {
+  else if ((value_type == 39e1fa0b84a811e2afba0002a5d5c51b) && (value_length == 1)) {
     result.calibratedsunlight = data[0];
   }
   // Calibrated Value ea no unites
-  else if ((value_type == 0x4C02) && (value_length == 1)) {
+  else if ((value_type == 39e1fa0c84a811e2afba0002a5d5c51b) && (value_length == 1)) {
     result.calibratedea = data[0];
   }
   // Calibrated Value ecb ds/m
-  else if ((value_type == 0x4C02) && (value_length == 1)) {
+  else if ((value_type == 39e1fa0d84a811e2afba0002a5d5c51b) && (value_length == 1)) {
     result.calibratedecb = data[0];
   }
   // Calibrated Value ecPorous ds/m
-  else if ((value_type == 0x4C02) && (value_length == 1)) {
+  else if ((value_type == 39e1fa0e84a811e2afba0002a5d5c51b) && (value_length == 1)) {
     result.calibratedecporous = data[0];
   } else {
     return false;
@@ -69,12 +69,6 @@ bool parse_parrot_value(uint16_t value_type, const uint8_t *data, uint8_t value_
 }
 
 bool parse_parrot_message(const std::vector<uint8_t> &message, ParrotParseResult &result) {
-  result.has_encryption = message[0] & 0x08;  // update encryption status
-  if (result.has_encryption) {
-    ESP_LOGVV(TAG, "parse_parrot_message(): payload is encrypted, stop reading message.");
-    return false;
-  }
-
   // Data point specs
   // Byte 0: type
   // Byte 1: fixed 0x10
@@ -159,94 +153,6 @@ optional<ParrotParseResult> parse_parrot_header(const esp32_ble_tracker::Service
   }
 
   return result;
-}
-
-bool decrypt_parrot_payload(std::vector<uint8_t> &raw, const uint8_t *bindkey, const uint64_t &address) {
-  if (!((raw.size() == 19) || ((raw.size() >= 22) && (raw.size() <= 24)))) {
-    ESP_LOGVV(TAG, "decrypt_parrot_payload(): data packet has wrong size (%d)!", raw.size());
-    ESP_LOGVV(TAG, "  Packet : %s", format_hex_pretty(raw.data(), raw.size()).c_str());
-    return false;
-  }
-
-  uint8_t mac_reverse[6] = {0};
-  mac_reverse[5] = (uint8_t) (address >> 40);
-  mac_reverse[4] = (uint8_t) (address >> 32);
-  mac_reverse[3] = (uint8_t) (address >> 24);
-  mac_reverse[2] = (uint8_t) (address >> 16);
-  mac_reverse[1] = (uint8_t) (address >> 8);
-  mac_reverse[0] = (uint8_t) (address >> 0);
-
-  ParrotAESVector vector{.key = {0},
-                         .plaintext = {0},
-                         .ciphertext = {0},
-                         .authdata = {0x11},
-                         .iv = {0},
-                         .tag = {0},
-                         .keysize = 16,
-                         .authsize = 1,
-                         .datasize = 0,
-                         .tagsize = 4,
-                         .ivsize = 12};
-
-  vector.datasize = (raw.size() == 19) ? raw.size() - 12 : raw.size() - 18;
-  int cipher_pos = (raw.size() == 19) ? 5 : 11;
-
-  const uint8_t *v = raw.data();
-
-  memcpy(vector.key, bindkey, vector.keysize);
-  memcpy(vector.ciphertext, v + cipher_pos, vector.datasize);
-  memcpy(vector.tag, v + raw.size() - vector.tagsize, vector.tagsize);
-  memcpy(vector.iv, mac_reverse, 6);             // MAC address reverse
-  memcpy(vector.iv + 6, v + 2, 3);               // sensor type (2) + packet id (1)
-  memcpy(vector.iv + 9, v + raw.size() - 7, 3);  // payload counter
-
-  mbedtls_ccm_context ctx;
-  mbedtls_ccm_init(&ctx);
-
-  int ret = mbedtls_ccm_setkey(&ctx, MBEDTLS_CIPHER_ID_AES, vector.key, vector.keysize * 8);
-  if (ret) {
-    ESP_LOGVV(TAG, "decrypt_parrot_payload(): mbedtls_ccm_setkey() failed.");
-    mbedtls_ccm_free(&ctx);
-    return false;
-  }
-
-  ret = mbedtls_ccm_auth_decrypt(&ctx, vector.datasize, vector.iv, vector.ivsize, vector.authdata, vector.authsize,
-                                 vector.ciphertext, vector.plaintext, vector.tag, vector.tagsize);
-  if (ret) {
-    uint8_t mac_address[6] = {0};
-    memcpy(mac_address, mac_reverse + 5, 1);
-    memcpy(mac_address + 1, mac_reverse + 4, 1);
-    memcpy(mac_address + 2, mac_reverse + 3, 1);
-    memcpy(mac_address + 3, mac_reverse + 2, 1);
-    memcpy(mac_address + 4, mac_reverse + 1, 1);
-    memcpy(mac_address + 5, mac_reverse, 1);
-    ESP_LOGVV(TAG, "decrypt_parrot_payload(): authenticated decryption failed.");
-    ESP_LOGVV(TAG, "  MAC address : %s", format_hex_pretty(mac_address, 6).c_str());
-    ESP_LOGVV(TAG, "       Packet : %s", format_hex_pretty(raw.data(), raw.size()).c_str());
-    ESP_LOGVV(TAG, "          Key : %s", format_hex_pretty(vector.key, vector.keysize).c_str());
-    ESP_LOGVV(TAG, "           Iv : %s", format_hex_pretty(vector.iv, vector.ivsize).c_str());
-    ESP_LOGVV(TAG, "       Cipher : %s", format_hex_pretty(vector.ciphertext, vector.datasize).c_str());
-    ESP_LOGVV(TAG, "          Tag : %s", format_hex_pretty(vector.tag, vector.tagsize).c_str());
-    mbedtls_ccm_free(&ctx);
-    return false;
-  }
-
-  // replace encrypted payload with plaintext
-  uint8_t *p = vector.plaintext;
-  for (std::vector<uint8_t>::iterator it = raw.begin() + cipher_pos; it != raw.begin() + cipher_pos + vector.datasize;
-       ++it) {
-    *it = *(p++);
-  }
-
-  // clear encrypted flag
-  raw[0] &= ~0x08;
-
-  ESP_LOGVV(TAG, "decrypt_parrot_payload(): authenticated decryption passed.");
-  ESP_LOGVV(TAG, "  Plaintext : %s, Packet : %d", format_hex_pretty(raw.data() + cipher_pos, vector.datasize).c_str(),
-            static_cast<int>(raw[4]));
-
-  mbedtls_ccm_free(&ctx);
-  return true;
 }
 
 bool report_parrot_results(const optional<ParrotParseResult> &result, const std::string &address) {

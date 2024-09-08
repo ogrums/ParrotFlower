@@ -18,8 +18,8 @@ class ParrotPower : public Component, public esp32_ble_tracker::ESPBTDeviceListe
 
   void dump_config() override;
   float get_setup_priority() const override { return setup_priority::DATA; }
-  void set_soiltemperature(sensor::Sensor *temperature) { soiltemperature_ = soiltemperature; }
-  void set_airtemperature(sensor::Sensor *temperature) { airtemperature_ = soiltemperature; }
+  void set_temperature(sensor::Sensor *temperature) { soiltemperature_ = temperature; }
+  //void set_temperature(sensor::Sensor *temperature) { airtemperature_ = temperature; }
   void set_moisture(sensor::Sensor *moisture) { moisture_ = moisture; }
   void set_calibratedsoilmoisture(sensor::Sensor *calibratedsoilmoisture) { calibratedsoilmoisture_ = calibratedsoilmoisture; }
   void set_sunlight(sensor::Sensor *sunlight) { sunlight_ = sunlight; }

@@ -34,10 +34,6 @@ bool ParrotPower::parse_device(const esp32_ble_tracker::ESPBTDevice &device) {
     if (res->is_duplicate) {
       continue;
     }
-    if (res->has_encryption) {
-      ESP_LOGVV(TAG, "parse_device(): payload decryption is currently not supported on this device.");
-      continue;
-    }
     if (!(parrot_flower::parse_parrot_message(service_data.data, *res))) {
       continue;
     }

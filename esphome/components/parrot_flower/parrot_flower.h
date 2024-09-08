@@ -54,7 +54,6 @@ struct ParrotAESVector {
 bool parse_parrot_value(uint16_t value_type, const uint8_t *data, uint8_t value_length, ParrotParseResult &result);
 bool parse_parrot_message(const std::vector<uint8_t> &message, ParrotParseResult &result);
 optional<ParrotParseResult> parse_parrot_header(const esp32_ble_tracker::ServiceData &service_data);
-bool decrypt_parrot_payload(std::vector<uint8_t> &raw, const uint8_t *bindkey, const uint64_t &address);
 bool report_parrot_results(const optional<ParrotParseResult> &result, const std::string &address);
 
 class ParrotListener : public esp32_ble_tracker::ESPBTDeviceListener {
